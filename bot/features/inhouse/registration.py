@@ -47,6 +47,8 @@ async def toggle_inhouse_registration(
         await embeds.reply(interaction, embeds.info(f"Les inscriptions à **{event.title}** sont {state}."))
         return
 
+    # La mise à jour de l'annonce (API Discord) peut dépasser les 3 secondes.
+    await interaction.response.defer(ephemeral=True, thinking=True)
     await set_registration(bot, event, open_)
     if open_:
         text = f"Inscriptions **ouvertes** 🔓 pour **{event.title}** : le bouton « Rejoindre » est actif."

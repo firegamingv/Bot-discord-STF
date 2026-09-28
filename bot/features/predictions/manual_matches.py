@@ -128,6 +128,8 @@ async def add_match(
     if equipe1.strip().lower() == equipe2.strip().lower():
         raise UserFacingError("Une équipe ne peut pas jouer contre elle-même 😄 Vérifie les noms.")
 
+    # La publication dans le salon des pronostics (API Discord) peut dépasser les 3 secondes.
+    await interaction.response.defer(ephemeral=True, thinking=True)
     match = await MatchRepository(bot.db).create_manual(
         guild_id, comp.id,
         team1_name=equipe1.strip(), team2_name=equipe2.strip(), starts_at=starts_at,
@@ -148,7 +150,7 @@ async def add_match(
                 posted = "\n⚠️ Impossible de publier dans le salon des pronostics (vérifie mes permissions)."
         else:
             posted = "\nℹ️ Aucun salon des pronostics configuré (`/config salon-pronos`) : le match n'a pas été annoncé."
-    await interaction.response.send_message(
+    await interaction.followup.send(
         embeds=[embeds.success(f"Match **#{match.id}** ajouté !{posted}", title="➕ Match créé"), card],
         ephemeral=True,
     )

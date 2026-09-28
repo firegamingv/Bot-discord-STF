@@ -291,11 +291,13 @@ class HelpView(BaseView):
 )
 async def help_command(interaction: discord.Interaction, categorie: app_commands.Choice[str] | None = None) -> None:
     bot: STFBot = interaction.client  # type: ignore[assignment]
+    # La récupération des mentions de commandes (API Discord) peut prendre jusqu'à ~2,5 s.
+    await interaction.response.defer(ephemeral=True, thinking=True)
     organizer = await is_organizer(interaction) if interaction.guild else False
     mentions = await _command_mentions(bot, interaction.guild)
     view = HelpView(user_id=interaction.user.id, organizer=organizer, mentions=mentions, bot_user=bot.user)
     key = categorie.value if categorie else HOME_KEY
     for opt in view.menu.options:
         opt.default = opt.value == key
-    await interaction.response.send_message(embed=view.embed_for(key), view=view, ephemeral=True)
+    await interaction.edit_original_response(embed=view.embed_for(key), view=view)
     view.origin = interaction

@@ -26,7 +26,7 @@ from bot.features.inhouse.players import (
 )
 from bot.repositories.participants import REGISTERED, WAITLIST, ParticipantRepository
 from bot.utils import embeds
-from bot.utils.embeds import Colors, Emojis, chunk_lines
+from bot.utils.embeds import Colors, Emojis, chunk_lines, fit_embed
 from bot.utils.time import discord_full
 
 if TYPE_CHECKING:
@@ -128,4 +128,4 @@ async def build_roster_embed(bot: "STFBot", event: "Event", game_mode: str) -> d
             embed.add_field(name=f"{Emojis.WARNING} À noter", value="\n".join(f"• {w}" for w in warnings)[:1024], inline=False)
 
     embed.set_footer(text=f"Inhouse #{event.id} · Visible uniquement par toi")
-    return embed
+    return fit_embed(embed)

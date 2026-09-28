@@ -11,6 +11,7 @@ Un seul appel d'API par lot de ligues, partagé entre tous les serveurs.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -32,6 +33,11 @@ log = logging.getLogger(__name__)
 FUTURE_DAYS = 7
 MAX_NEWER_PAGES = 4
 MAX_OLDER_PAGES = 2
+
+# Une seule synchronisation à la fois (tâche de fond, /pronos-admin synchroniser, bouton
+# « Terminé » des compétitions) : sinon deux insertions concurrentes du même match
+# violeraient la contrainte UNIQUE (guild_id, external_id).
+_SYNC_LOCK = asyncio.Lock()
 
 
 @dataclass(slots=True)
@@ -95,6 +101,11 @@ def db_state(dto: MatchDTO) -> str:
 
 
 async def sync_competitions(bot: "STFBot", competitions: list[Competition]) -> SyncReport:
+    async with _SYNC_LOCK:
+        return await _sync_competitions(bot, competitions)
+
+
+async def _sync_competitions(bot: "STFBot", competitions: list[Competition]) -> SyncReport:
     report = SyncReport(competitions=len(competitions))
     comps = [c for c in competitions if c.source == SOURCE_LOLESPORTS and c.followed]
     if not comps:

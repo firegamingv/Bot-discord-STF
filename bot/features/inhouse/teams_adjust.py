@@ -77,7 +77,7 @@ async def _send_preview(
             value="Le message public n'est pas encore à jour : clique sur **Republier les équipes**.",
             inline=False,
         )
-    items = [summary, *build_teams_embeds(bot, ctx, draft=True)][:10]
+    items = [summary, *build_teams_embeds(bot, ctx, draft=True, reserved=[summary])]
     view = PublishTeamsView(event.id, interaction.user.id, republish=session.teams_published)
     await interaction.followup.send(embeds=items, view=view, ephemeral=True)
 

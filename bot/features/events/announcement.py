@@ -27,7 +27,7 @@ from bot.repositories.events import (
     EventRepository,
 )
 from bot.repositories.participants import REGISTERED, WAITLIST, Participant, ParticipantRepository
-from bot.utils.embeds import Colors, Emojis, chunk_lines
+from bot.utils.embeds import Colors, Emojis, chunk_lines, fit_embed
 from bot.utils.time import discord_full, discord_ts
 
 if TYPE_CHECKING:
@@ -107,8 +107,8 @@ async def build_event_embed(bot: "STFBot", event: Event) -> discord.Embed:
         log.exception("kind.build_embed a échoué pour l'événement %s (%s)", event.id, event.type)
         custom = None
     if custom is not None:
-        return custom
-    return generic_event_embed(event, participants)
+        return fit_embed(custom)
+    return fit_embed(generic_event_embed(event, participants))
 
 
 def generic_event_embed(event: Event, participants: list[Participant]) -> discord.Embed:
@@ -160,7 +160,7 @@ async def build_participants_embed(bot: "STFBot", event: Event) -> discord.Embed
         log.exception("build_participants_embed a échoué pour l'événement #%s", event.id)
         custom = None
     if custom is not None:
-        return custom
+        return fit_embed(custom)
     participants = await ParticipantRepository(bot.db).list(event.id)
     registered = [p for p in participants if p.status == REGISTERED]
     waiting = [p for p in participants if p.status == WAITLIST]
@@ -200,7 +200,7 @@ async def build_participants_embed(bot: "STFBot", event: Event) -> discord.Embed
                 inline=False,
             )
     embed.set_footer(text=f"Événement #{event.id}")
-    return embed
+    return fit_embed(embed)
 
 
 # ---------------------------------------------------------------------- boutons

@@ -79,6 +79,8 @@ class DailyMatchesTask(commands.Cog):
     def __init__(self, bot: "STFBot") -> None:
         self.bot = bot
         self.state = DailyStateStore(Path(bot.config.database_path).parent / STATE_FILENAME)
+
+    async def cog_load(self) -> None:
         self.daily_loop.start()
 
     async def cog_unload(self) -> None:

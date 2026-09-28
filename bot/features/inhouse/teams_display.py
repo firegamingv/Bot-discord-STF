@@ -216,13 +216,18 @@ def _substitutes_embed(ctx: TeamsContext) -> discord.Embed | None:
     return embed
 
 
-def _fit(embed_list: list[discord.Embed]) -> list[discord.Embed]:
-    """Respecte les limites Discord (10 embeds, 6000 caractères au total)."""
+def _fit(embed_list: list[discord.Embed], *, reserved: tuple[int, int] = (0, 0)) -> list[discord.Embed]:
+    """Respecte les limites Discord (10 embeds, 6000 caractères au total).
+
+    ``reserved`` = (nombre d'embeds, caractères) déjà occupés dans le même message par
+    l'appelant (ex. l'embed de résumé d'un aperçu).
+    """
     kept: list[discord.Embed] = []
-    total = 0
+    extra_embeds, extra_chars = reserved
+    total = extra_chars
     for e in embed_list:
         size = len(e)
-        if len(kept) >= MAX_EMBEDS - 1 or total + size > MAX_TOTAL_CHARS - 200:
+        if len(kept) + extra_embeds >= MAX_EMBEDS - 1 or total + size > MAX_TOTAL_CHARS - 200:
             omitted = len(embed_list) - len(kept)
             kept.append(
                 embeds.warning(
@@ -236,8 +241,13 @@ def _fit(embed_list: list[discord.Embed]) -> list[discord.Embed]:
     return kept
 
 
-def build_teams_embeds(bot: "STFBot", ctx: TeamsContext, *, draft: bool = False) -> list[discord.Embed]:
-    """Embeds complètes des équipes (en-tête, une par partie, remplaçants)."""
+def build_teams_embeds(
+    bot: "STFBot", ctx: TeamsContext, *, draft: bool = False, reserved: list[discord.Embed] | None = None
+) -> list[discord.Embed]:
+    """Embeds complètes des équipes (en-tête, une par partie, remplaçants).
+
+    ``reserved`` : embeds envoyées dans le même message (comptées dans les limites Discord).
+    """
     if not ctx.stored.exists:
         return [
             embeds.info(
@@ -250,7 +260,8 @@ def build_teams_embeds(bot: "STFBot", ctx: TeamsContext, *, draft: bool = False)
     items += _arena_embeds(bot, ctx) if ctx.mode.key == "arena" else _versus_embeds(bot, ctx)
     if subs := _substitutes_embed(ctx):
         items.append(subs)
-    return _fit(items)
+    reserved = reserved or []
+    return _fit(items, reserved=(len(reserved), sum(len(e) for e in reserved)))
 
 
 def teams_mentions(stored: StoredTeams) -> str:

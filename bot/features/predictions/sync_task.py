@@ -19,6 +19,8 @@ log = logging.getLogger(__name__)
 class LolEsportsSyncTask(commands.Cog):
     def __init__(self, bot: "STFBot") -> None:
         self.bot = bot
+
+    async def cog_load(self) -> None:
         self.sync_loop.start()
 
     async def cog_unload(self) -> None:

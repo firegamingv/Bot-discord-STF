@@ -41,6 +41,8 @@ async def finish_command(interaction: discord.Interaction, evenement: int) -> No
     event = await resolve_event(interaction, evenement)
     if not event.is_active:
         raise UserFacingError(f"**{event.title}** est déjà terminé.")
+    # La mise à jour de l'annonce (API Discord) peut dépasser les 3 secondes.
+    await interaction.response.defer(ephemeral=True, thinking=True)
     await finish_event(bot, event)
     count = await ParticipantRepository(bot.db).count(event.id)
     log.info("Clôture manuelle de l'événement %s par %s (%s)", event.id, interaction.user, interaction.user.id)

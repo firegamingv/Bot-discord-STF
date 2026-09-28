@@ -10,6 +10,7 @@ Déroulé :
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import random
 from typing import TYPE_CHECKING
@@ -57,7 +58,10 @@ async def generate_and_save(
         )
     cards = await load_players(bot, registered)
     try:
-        result = build_teams(to_player_infos(registered, cards), mode.key, team_size=mode.team_size, seed=seed)
+        # Calcul pur et potentiellement long (grands inhouses) : hors de la boucle d'événements.
+        result = await asyncio.to_thread(
+            build_teams, to_player_infos(registered, cards), mode.key, team_size=mode.team_size, seed=seed
+        )
     except NotEnoughPlayersError as exc:
         raise UserFacingError(
             f"Pas assez de joueurs pour former les équipes : il en faut au moins {exc.required}."
@@ -102,14 +106,14 @@ async def build_preview(
     mode = get_mode(session.game_mode)
     session = await InhouseRepository(bot.db).get(event.id) or session
     ctx = await load_teams_context(bot, event, session)
-    items = [_quality_embed(mode, result, cards, seed), *build_teams_embeds(bot, ctx, draft=True)]
+    quality = _quality_embed(mode, result, cards, seed)
     if session.teams_published:
-        items[0].add_field(
+        quality.add_field(
             name="📢 Déjà publiées",
             value="Les équipes affichées publiquement ne changeront qu'en cliquant sur **Publier**.",
             inline=False,
         )
-    return items[:10]
+    return [quality, *build_teams_embeds(bot, ctx, draft=True, reserved=[quality])]
 
 
 # ------------------------------------------------------------------ aperçu interactif

@@ -180,6 +180,8 @@ class LeaderboardAutopostTask(commands.Cog):
 
     def __init__(self, bot: "STFBot") -> None:
         self.bot = bot
+
+    async def cog_load(self) -> None:
         self.loop.start()
 
     async def cog_unload(self) -> None:
