@@ -32,14 +32,27 @@ fonctionne en mode dégradé : pas de vérification du Riot ID ni de rang.
 
 ### 3. Lancer le bot
 
-**Avec Python (3.11+)**
-```bash
+**Avec Python (3.11+) — Windows (PowerShell)**
+```powershell
 python -m venv .venv
-source .venv/bin/activate          # Windows : .venv\Scripts\activate
+.venv\Scripts\Activate.ps1         # si refusé : Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+pip install -r requirements.txt
+copy .env.example .env
+notepad .env                       # remplis DISCORD_TOKEN, GUILD_ID, RIOT_API_KEY puis enregistre
+python -m bot
+```
+
+**Avec Python (3.11+) — Linux / macOS**
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env               # puis remplis DISCORD_TOKEN, GUILD_ID, RIOT_API_KEY
 python -m bot
 ```
+
+> ⚠️ Si tu télécharges le ZIP depuis GitHub, vérifie que tu prends la branche qui contient tout
+> le bot (le dossier `bot/features/` doit contenir `events`, `inhouse`, `predictions`…).
 
 **Avec Docker**
 ```bash
