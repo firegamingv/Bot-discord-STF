@@ -115,6 +115,8 @@ CATEGORIES: tuple[HelpCategory, ...] = (
             HelpEntry("pronos classement-general", "Le classement général par solde de points."),
             HelpEntry("pronos regles", "Comment fonctionnent les points, les cotes et les paris."),
             HelpEntry("pronos-admin competitions", "Choisir les compétitions suivies.", True),
+            HelpEntry("pronos-admin competition-suivre", "Suivre une compétition en tapant son nom (ex. LFL).", True),
+            HelpEntry("pronos-admin competition-retirer", "Ne plus suivre une compétition.", True),
             HelpEntry("pronos-admin synchroniser", "Récupérer les matchs depuis LoL Esports.", True),
             HelpEntry("pronos-admin competition-creer", "Créer une compétition maison (matchs manuels).", True),
             HelpEntry("pronos-admin match-ajouter", "Ajouter un match manuellement.", True),

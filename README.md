@@ -131,7 +131,8 @@ trop de joueurs pour faire des parties complètes, les derniers inscrits sont re
 | `/pronos mes-paris` · `solde` · `stats` | Tes paris, ton solde, tes statistiques |
 | `/pronos classement` | Classement par période, compétition, tournoi, type de pari |
 | `/pronos classement-general` · `regles` | Classement par solde · règles du jeu |
-| `/pronos-admin competitions` 🔒 | Choisir les compétitions suivies |
+| `/pronos-admin competitions` 🔒 | Choisir les compétitions suivies (menu) |
+| `/pronos-admin competition-suivre` · `competition-retirer` 🔒 | Suivre / ne plus suivre une compétition en tapant son nom (ex. `lfl`) |
 | `/pronos-admin synchroniser` 🔒 | Forcer la récupération des matchs |
 | `/pronos-admin competition-creer` · `match-ajouter` · `resultat` · `annuler-match` 🔒 | Gestion manuelle |
 | `/pronos-admin classement-auto` 🔒 | Publication automatique de classements (quotidienne / hebdo) |

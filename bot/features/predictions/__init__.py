@@ -19,6 +19,7 @@ Fichiers (un par fonctionnalité) :
 - ``leaderboard_command.py``  : ``/pronos classement`` et ``/pronos classement-general``
 - ``rules.py``                : ``/pronos regles``
 - ``competitions_admin.py``   : ``/pronos-admin competitions``
+- ``competition_follow.py``   : ``/pronos-admin competition-suivre | competition-retirer`` (recherche par nom)
 - ``sync_command.py``         : ``/pronos-admin synchroniser``
 - ``manual_matches.py``       : ``/pronos-admin competition-creer | match-ajouter | resultat | annuler-match``
 - ``points_admin.py``         : ``/pronos-admin points``
@@ -41,6 +42,7 @@ from bot.features.predictions import stats  # noqa: F401
 from bot.features.predictions import leaderboard_command  # noqa: F401
 from bot.features.predictions import rules  # noqa: F401
 from bot.features.predictions import competitions_admin  # noqa: F401
+from bot.features.predictions import competition_follow  # noqa: F401
 from bot.features.predictions import sync_command  # noqa: F401
 from bot.features.predictions import manual_matches  # noqa: F401
 from bot.features.predictions import points_admin  # noqa: F401
