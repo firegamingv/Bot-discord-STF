@@ -88,3 +88,33 @@ async def test_roles_and_riot_accounts(db):
     assert acc.rank_score == 3 * 400 + 2 * 100 + 50
     assert (await accounts.get_by_puuid("p1")).discord_id == 7
     assert await accounts.unlink(7)
+
+
+async def test_concurrent_transactions_are_isolated(db):
+    import asyncio
+
+    await db.execute("CREATE TABLE t (v INTEGER)")
+
+    async def failing_tx():
+        async with db.transaction() as conn:
+            await conn.execute("INSERT INTO t VALUES (1)")
+            await asyncio.sleep(0.01)  # une autre tâche tente d'écrire pendant ce temps
+            raise RuntimeError("boom")
+
+    async def other_write():
+        await asyncio.sleep(0.001)
+        await db.execute("INSERT INTO t VALUES (2)")
+
+    results = await asyncio.gather(failing_tx(), other_write(), return_exceptions=True)
+    assert isinstance(results[0], RuntimeError)
+    # La ligne 1 a été annulée, la ligne 2 (écrite après la transaction) est conservée
+    assert [r["v"] for r in await db.fetchall("SELECT v FROM t")] == [2]
+
+
+async def test_helpers_inside_transaction_do_not_deadlock(db):
+    await db.execute("CREATE TABLE t (v INTEGER)")
+    async with db.transaction():
+        await db.execute("INSERT INTO t VALUES (1)")
+        async with db.transaction():  # imbriquée : fusionnée
+            await db.executemany("INSERT INTO t VALUES (?)", [(2,), (3,)])
+    assert await db.fetchval("SELECT COUNT(*) FROM t") == 3

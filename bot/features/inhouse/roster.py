@@ -31,6 +31,7 @@ from bot.utils.time import discord_full
 
 if TYPE_CHECKING:
     from bot.core.bot import STFBot
+    from bot.repositories.events import Event
 
 MAX_FIELDS_REGISTERED = 8
 MAX_FIELDS_WAITLIST = 3
@@ -42,7 +43,13 @@ MAX_FIELDS_WAITLIST = 3
 async def roster_command(interaction: discord.Interaction, session: int) -> None:
     bot: STFBot = interaction.client  # type: ignore[assignment]
     event, ih = await resolve_inhouse(interaction, session)
-    mode = get_mode(ih.game_mode)
+    embed = await build_roster_embed(bot, event, ih.game_mode)
+    await embeds.reply(interaction, embed, ephemeral=True)
+
+
+async def build_roster_embed(bot: "STFBot", event: "Event", game_mode: str) -> discord.Embed:
+    """Embed détaillé des inscrits (aussi utilisé par le bouton générique « Voir les inscrits »)."""
+    mode = get_mode(game_mode)
     participants = await ParticipantRepository(bot.db).list(event.id)
     registered = [p.discord_id for p in participants if p.status == REGISTERED]
     waiting = [p.discord_id for p in participants if p.status == WAITLIST]
@@ -121,4 +128,4 @@ async def roster_command(interaction: discord.Interaction, session: int) -> None
             embed.add_field(name=f"{Emojis.WARNING} À noter", value="\n".join(f"• {w}" for w in warnings)[:1024], inline=False)
 
     embed.set_footer(text=f"Inhouse #{event.id} · Visible uniquement par toi")
-    await embeds.reply(interaction, embed, ephemeral=True)
+    return embed

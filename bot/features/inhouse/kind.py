@@ -86,6 +86,15 @@ class InhouseKind(EventKind):
     emoji = "⚔️"
     color = Colors.INHOUSE
 
+    # ------------------------------------------------------------------ inscrits
+    async def build_participants_embed(self, bot: "STFBot", event: "Event") -> discord.Embed | None:
+        from bot.features.inhouse.roster import build_roster_embed  # import local : évite un cycle
+
+        session = await InhouseRepository(bot.db).get(event.id)
+        if session is None:
+            return None
+        return await build_roster_embed(bot, event, session.game_mode)
+
     # ------------------------------------------------------------------ annonce
     async def build_embed(
         self, bot: "STFBot", event: "Event", participants: list["Participant"]

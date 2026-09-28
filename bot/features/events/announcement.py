@@ -153,8 +153,15 @@ def generic_event_embed(event: Event, participants: list[Participant]) -> discor
 
 async def build_participants_embed(bot: "STFBot", event: Event) -> discord.Embed:
     """Liste détaillée (éphémère) des inscrits et de la liste d'attente."""
-    participants = await ParticipantRepository(bot.db).list(event.id)
     kind = get_kind(event.type)
+    try:
+        custom = await kind.build_participants_embed(bot, event)
+    except Exception:  # noqa: BLE001 - on retombe sur l'affichage générique
+        log.exception("build_participants_embed a échoué pour l'événement #%s", event.id)
+        custom = None
+    if custom is not None:
+        return custom
+    participants = await ParticipantRepository(bot.db).list(event.id)
     registered = [p for p in participants if p.status == REGISTERED]
     waiting = [p for p in participants if p.status == WAITLIST]
 
