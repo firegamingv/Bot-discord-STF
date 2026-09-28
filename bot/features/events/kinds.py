@@ -35,6 +35,10 @@ class EventKind:
         """Embed de l'annonce. ``None`` = utiliser l'embed générique."""
         return None
 
+    async def build_participants_embed(self, bot: "STFBot", event: "Event") -> discord.Embed | None:
+        """Liste détaillée des inscrits (bouton « Voir les inscrits »). ``None`` = affichage générique."""
+        return None
+
     async def extra_components(self, bot: "STFBot", event: "Event") -> list[discord.ui.Item]:
         """Boutons supplémentaires ajoutés sous l'annonce (ex. « Mes rôles »)."""
         return []

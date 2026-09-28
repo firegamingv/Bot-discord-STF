@@ -1,0 +1,17 @@
+# Service systemd — à copier dans /etc/systemd/system/stf-bot.service
+# puis : sudo systemctl daemon-reload && sudo systemctl enable --now stf-bot
+[Unit]
+Description=Bot Discord STF
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=stfbot
+WorkingDirectory=/opt/Bot-discord-STF
+ExecStart=/opt/Bot-discord-STF/.venv/bin/python -m bot
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

@@ -71,6 +71,42 @@ def truncate(text: str, limit: int = 1024) -> str:
     return text if len(text) <= limit else text[: limit - 1] + "…"
 
 
+#: Nom « invisible » des champs de continuation (suite d'une liste découpée en plusieurs champs).
+CONTINUATION = "​"
+#: Limite Discord : 6000 caractères au total par embed (titre, description, champs, pied…).
+EMBED_TOTAL_LIMIT = 6000
+
+
+def fit_embed(embed: discord.Embed, limit: int = EMBED_TOTAL_LIMIT) -> discord.Embed:
+    """Garantit que l'embed respecte la limite totale de Discord (sinon HTTP 400).
+
+    Retire d'abord les champs de continuation (en partant de la fin), puis tronque la
+    description, puis le champ le plus long. Modifie et renvoie ``embed``.
+    """
+    while len(embed) > limit:
+        fields = embed.fields
+        continuations = [i for i, f in enumerate(fields) if f.name == CONTINUATION]
+        if continuations:
+            embed.remove_field(continuations[-1])
+            continue
+        excess = len(embed) - limit
+        description = embed.description or ""
+        if len(description) > excess + 1:
+            embed.description = truncate(description, len(description) - excess)
+            continue
+        if not fields:
+            break
+        i = max(range(len(fields)), key=lambda k: len(fields[k].value or ""))
+        value = fields[i].value or ""
+        if len(value) <= excess + 1:
+            embed.remove_field(i)
+            continue
+        embed.set_field_at(
+            i, name=fields[i].name, value=truncate(value, len(value) - excess), inline=fields[i].inline
+        )
+    return embed
+
+
 def chunk_lines(lines: list[str], limit: int = 1024) -> list[str]:
     """Regroupe des lignes en blocs respectant la limite d'un champ d'embed."""
     chunks: list[str] = []
