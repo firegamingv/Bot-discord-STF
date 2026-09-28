@@ -22,7 +22,60 @@ bot/
 ├── services/                # API externes & algorithmes purs (testables sans Discord)
 ├── utils/                   # temps (parsing FR, timestamps Discord), embeds (charte)
 └── features/                # UN paquet par domaine, UN fichier par fonctionnalité
-    ├── admin/  help/  account/  events/  inhouse/  predictions/
+    ├── admin/               # /config
+    │   ├── channels.py            salon-annonces, salon-pronos
+    │   ├── channel_permissions.py vérifie que le bot peut écrire dans un salon
+    │   ├── organizer_role.py      role-organisateur
+    │   ├── reminders.py           rappels  (+ reminder_parser.py : « 1j, 1h, 15min »)
+    │   ├── predictions_scale.py   bareme-pronos
+    │   └── overview.py            voir
+    ├── help/help_command.py # /aide (menu interactif)
+    ├── account/             # /compte
+    │   ├── link.py                lier + modale + bouton persistant acc:link
+    │   ├── linking_service.py     logique de liaison Riot (PUUID, doublons, mode dégradé)
+    │   ├── unlink.py              delier (confirmation)
+    │   ├── role_picker.py         sélecteur de rôles + bouton persistant acc:roles
+    │   ├── roles.py               roles
+    │   ├── profile.py             profil  (+ display.py, opgg.py, participation_stats.py)
+    │   ├── refresh.py             actualiser
+    │   └── rank_refresh.py        rafraîchissement des rangs (utilisé par l'inhouse)
+    ├── events/              # /evenement — le cœur du bot
+    │   ├── kinds.py               registre des types d'événements (hooks)
+    │   ├── announcement.py        embed + boutons de l'annonce, publication, mise à jour
+    │   ├── buttons.py             boutons persistants Rejoindre / Quitter / Inscrits
+    │   ├── registration_service.py logique d'inscription (verrou, liste d'attente, hooks)
+    │   ├── self_registration.py   rejoindre, quitter
+    │   ├── registration_toggle.py inscriptions ouvrir|fermer
+    │   ├── create.py · edit.py · delete.py · finish.py
+    │   ├── listing.py · details.py · participants.py (+ retirer)
+    │   ├── manual_announcement.py annoncer
+    │   ├── notifications.py       MP aux membres (repli : mention dans le salon)
+    │   ├── reminders_task.py      tâche : rappels avant le début
+    │   └── lifecycle_task.py      tâche : en cours / terminé
+    ├── inhouse/             # /inhouse — type d'événement « inhouse »
+    │   ├── kind.py                InhouseKind (annonce LoL, conditions d'inscription)
+    │   ├── constants.py           modes Faille / ARAM / Arena
+    │   ├── create.py · edit.py · registration.py · announce.py
+    │   ├── roster.py              inscrits (détail Riot ID / rang / rôles / MultiGG)
+    │   ├── players.py             fiches joueurs
+    │   ├── teams_generate.py      génération + aperçu (Publier / Regénérer / Annuler)
+    │   ├── teams_adjust.py        equipes-echanger, equipes-deplacer
+    │   ├── teams_display.py       embeds des équipes + bouton ih:teams
+    │   ├── teams_publish.py       equipes-publier
+    │   └── confirm.py             vue de confirmation
+    └── predictions/         # /pronos et /pronos-admin
+        ├── wallet_service.py      solde, capital de départ, bonus quotidien
+        ├── betting_service.py     placer / modifier un pari
+        ├── settlement_service.py  régler / annuler un match
+        ├── sync_service.py        synchronisation LoL Esports
+        ├── leaderboard_service.py rendu des classements
+        ├── bet_buttons.py         boutons persistants bet:<match>:<choix>
+        ├── matches_command.py · bet_command.py · my_bets.py · balance.py · stats.py
+        ├── leaderboard_command.py · rules.py
+        ├── competitions_admin.py · sync_command.py · manual_matches.py · points_admin.py
+        ├── leaderboard_autopost.py classement-auto + tâche de publication
+        ├── sync_task.py           tâche : synchro toutes les 10 min
+        └── daily_matches_task.py  tâche : matchs du jour à 10 h
 ```
 
 ## Conventions
@@ -70,6 +123,8 @@ bot/
   importantes en INFO (création/suppression d'événement, génération d'équipes, règlement de paris).
 
 ### Données
+- Une seule connexion SQLite : `Database` sérialise écritures et transactions (verrou) ;
+  les helpers appelés dans `db.transaction()` par la même tâche ne commitent pas.
 - Dates en UTC dans la base (`to_db` / `from_db`), saisie utilisateur en heure locale via
   `parse_user_datetime(texte, bot.config.timezone)`.
 - Toute évolution du schéma = nouvelle entrée en fin de `bot/db/migrations.py`.
@@ -84,8 +139,13 @@ bot/
 | `features/account/linking_service.py` | `link_riot_account(bot, user, game_name, tag_line)` |
 | `features/account/role_picker.py` | `send_role_picker(interaction, *, after_save=None)` |
 | `features/account/rank_refresh.py` | `refresh_ranks(bot, discord_ids, max_age=timedelta(hours=6))` |
+| `features/events/kinds.py` → `EventKind.build_participants_embed` | détail des inscrits propre au type (bouton « Voir les inscrits ») |
+| `features/inhouse/teams_publish.py` | `publish_teams(...)` |
+| `features/predictions/*_service.py` | `ensure_wallet`, `place_bet`, `settle_match`, `cancel_match`, `render_leaderboard` |
+| `services/team_builder.py` | `build_teams`, `PlayerInfo`, `TeamsResult` (algorithme pur) |
+| `services/multigg.py` | `opgg_region`, `multisearch_url(s)` |
 | `services/riot_api.py` | `RiotClient` (`enabled`, `get_account_by_riot_id`, `get_account_by_puuid`, `get_solo_rank`) |
-| `services/lolesports_api.py` | `LolEsportsClient` (`get_leagues`, `get_schedule`) |
+| `services/lolesports_api.py` | `LolEsportsClient` (`get_leagues`, `get_schedule`, `get_tournaments`) |
 
 ### Identifiants des boutons persistants
 | Préfixe | Domaine |
